@@ -1,5 +1,4 @@
 #pragma once
-#include <Globals/hIncludes.h>
 #include <Windows.h>
 #include <WinINet.h>
 #include <iostream>
