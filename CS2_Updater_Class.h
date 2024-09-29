@@ -28,7 +28,7 @@ private:
 
     const std::vector<std::pair<std::string, std::string>> Github_File_Path = {
         {"https://github.com/a2x/cs2-dumper/raw/main/output/offsets.json", "Offsets.json"},
-        {"https://github.com/a2x/cs2-dumper/raw/main/output/client_dll.json", "client_dll.json"}
+        {"https://github.com/NeoXa7/Cpp-Updater-Class-for-CS2-Offsets/raw/main/Client_Dll.json", "Client_Dll.json"}
         // Add more files here as needed
     };
 
@@ -215,32 +215,31 @@ public:
     }
 
     bool UpdateOffsets() {
-        for (const auto& file : Github_File_Path)
-        {
-            const auto& localPath = file.second;
+        std::vector<std::string> file_paths = { "Offsets.json", "Client_Dll.json" };
+        json Data;
 
-            if (!FileExists(localPath)) {
-                std::cerr << " [Updater] Offsets file not found." << std::endl;
-                return false;
+        for (const auto& file_path : file_paths) {
+            if (!FileExists(file_path)) {
+                std::cerr << " [Updater] " << file_path << " not found." << std::endl;
+                continue;
             }
 
-            std::ifstream inFile(localPath);
+            std::ifstream inFile(file_path);
             if (!inFile) {
-                std::cerr << " [Updater] Failed to open offsets file." << std::endl;
+                std::cerr << " [Updater] Failed to open " << file_path << "." << std::endl;
                 return false;
             }
 
-            json Data;
             try {
-                inFile >> Data; // Read JSON data
+                inFile >> Data;
             }
             catch (const std::exception& e) {
-                std::cerr << " [Updater] Failed to parse offsets JSON: " << e.what() << std::endl;
+                std::cerr << " [Updater] Failed to parse JSON from " << file_path << ": " << e.what() << std::endl;
                 return false;
             }
 
-            const auto& Client = Data["client.dll"];
-            const auto& Matchmaking = Data["matchmaking.dll"];
+            
+            
             const auto& C_BaseEntity = Data["C_BaseEntity"];
             const auto& C_CSPlayerPawn = Data["C_CSPlayerPawn"];
             const auto& CCSPlayerController = Data["CCSPlayerController"];
@@ -253,116 +252,154 @@ public:
             const auto& CGameSceneNode = Data["CGameSceneNode"];
             const auto& EntitySpottedState_t = Data["EntitySpottedState_t"];
 
-            // Getting Offsets.json
-            if (Data.contains("client.dll")) {               
-                Offsets::dwEntityList = Client["dwEntityList"];
-                Offsets::dwLocalPlayerPawn = Client["dwLocalPlayerPawn"];
-                Offsets::dwLocalPlayerController = Client["dwLocalPlayerController"];
-                Offsets::dwViewAngles = Client["dwViewAngles"];
-                Offsets::dwViewMatrix = Client["dwViewMatrix"];
-                Offsets::dwSensitivity = Client["dwSensitivity"];
-                Offsets::dwSensitivity_sensitivity = Client["dwSensitivity_sensitivity"];
-                Offsets::dwGameRules = Client["dwGameRules"];
-                Offsets::dwPlantedC4 = Client["dwPlantedC4"];
-                Offsets::dwGlobalVars = Client["dwGlobalVars"];
-                Offsets::dwWeaponC4 = Client["dwWeaponC4"];
-            }
 
-            if (Data.contains("matchmaking.dll"))
-            {                
-                Offsets::dwGameTypes = Matchmaking["dwGameTypes"];
-                Offsets::dwGameTypes_mapName = Matchmaking["dwGameTypes_mapName"];
-            }
-
-            // C_BaseEntity
-            if (Data.contains("C_BaseEntity"))
-            {           
-                Offsets::m_iTeamNum = C_BaseEntity["m_iTeamNum"];
-                Offsets::m_iHealth = C_BaseEntity["m_iHealth"];
-                Offsets::m_pGameSceneNode = C_BaseEntity["m_pGameSceneNode"];
-                Offsets::m_fFlags = C_BaseEntity["m_fFlags"];
-                Offsets::m_vecAbsVelocity = C_BaseEntity["m_vecAbsVelocity"];
-                Offsets::m_fFlags = C_BaseEntity["m_fFlags"];
-                Offsets::m_hOwnerEntity = C_BaseEntity["m_hOwnerEntity"];
-            }
-
-            // C_CSPlayerPawn
-            if (Data.contains("C_CSPlayerPawn"))
-            {               
-                Offsets::m_ArmorValue = C_CSPlayerPawn["m_ArmorValue"];
-                Offsets::m_iShotsFired = C_CSPlayerPawn["m_iShotsFired"];
-                Offsets::m_aimPunchAngle = C_CSPlayerPawn["m_aimPunchAngle"];
-                Offsets::m_bIsScoped = C_CSPlayerPawn["m_bIsScoped"];
-                Offsets::m_entitySpottedState = C_CSPlayerPawn["m_entitySpottedState"];
-            }
-
-            // CCSPlayerController
-            if (Data.contains("CCSPlayerController"))
+            if (file_path == "Offsets.json")
             {
-                Offsets::m_hPlayerPawn = CCSPlayerController["m_hPlayerPawn"];
-                Offsets::m_sSanitizedPlayerName = CCSPlayerController["m_sSanitizedPlayerName"];
-                Offsets::m_iPing = CCSPlayerController["m_iPing"];
-            }
+                const auto& Client = Data["client.dll"];
+                if (Data.contains("client.dll")) {
+                    Offsets::dwEntityList = Client["dwEntityList"];
+                    Offsets::dwLocalPlayerPawn = Client["dwLocalPlayerPawn"];
+                    Offsets::dwLocalPlayerController = Client["dwLocalPlayerController"];
+                    Offsets::dwViewAngles = Client["dwViewAngles"];
+                    Offsets::dwViewMatrix = Client["dwViewMatrix"];
+                    Offsets::dwSensitivity = Client["dwSensitivity"];
+                    Offsets::dwSensitivity_sensitivity = Client["dwSensitivity_sensitivity"];
+                    Offsets::dwGameRules = Client["dwGameRules"];
+                    Offsets::dwPlantedC4 = Client["dwPlantedC4"];
+                    Offsets::dwGlobalVars = Client["dwGlobalVars"];
+                    Offsets::dwWeaponC4 = Client["dwWeaponC4"];
+                }
 
-            // C_CSPlayerPawnBase
-            if (Data.contains("C_CSPlayerPawnBase"))
+                if (Data.contains("matchmaking.dll"))
+                {
+                    const auto& Matchmaking = Data["matchmaking.dll"];
+                    Offsets::dwGameTypes = Matchmaking["dwGameTypes"];
+                    Offsets::dwGameTypes_mapName = Matchmaking["dwGameTypes_mapName"];
+                }
+
+            }else if (file_path == "Client_Dll.json")
             {
-                Offsets::m_flFlashBangTime = C_CSPlayerPawnBase["m_flFlashBangTime"];
-                Offsets::m_iIDEntIndex = C_CSPlayerPawnBase["m_iIDEntIndex"];
-            }
+                if (Data.contains("C_CSPlayerPawn"))
+                {
+                    if (C_CSPlayerPawn.contains("fields")) {
+                        const auto& fields = C_CSPlayerPawn["fields"];
+                        Offsets::m_ArmorValue = fields["m_ArmorValue"];
+                        Offsets::m_iShotsFired = fields["m_iShotsFired"];
+                        Offsets::m_aimPunchAngle = fields["m_aimPunchAngle"];
+                        Offsets::m_bIsScoped = fields["m_bIsScoped"];
+                        Offsets::m_entitySpottedState = fields["m_entitySpottedState"];
+                    }
+                }
 
-            // C_BasePlayerPawn
-            if (Data.contains("C_BasePlayerPawn"))
-            {
-                Offsets::m_vOldOrigin = C_BasePlayerPawn["m_vOldOrigin"];
-            }
+                if (Data.contains("C_BaseEntity")) {
+                    if (C_BaseEntity.contains("fields")) {
+                        const auto& fields = C_BaseEntity["fields"];
+                        Offsets::m_iTeamNum = fields.value("m_iTeamNum", 0);
+                        Offsets::m_iHealth = fields["m_iHealth"];
+                        Offsets::m_pGameSceneNode = fields["m_pGameSceneNode"];
+                        Offsets::m_fFlags = fields["m_fFlags"];
+                        Offsets::m_vecAbsVelocity = fields["m_vecAbsVelocity"];
+                        Offsets::m_fFlags = fields["m_fFlags"];
+                        Offsets::m_hOwnerEntity = fields["m_hOwnerEntity"];
+                    }
+                }
 
-            // C_BaseModelEntity
-            if (Data.contains("C_BaseModelEntity"))
-            {
-                Offsets::m_vecViewOffset = C_BaseModelEntity["m_vecViewOffset"];
-                Offsets::m_Glow = C_BaseModelEntity["m_Glow"];
-            }
+                // CCSPlayerController
+                if (Data.contains("CCSPlayerController"))
+                {
+                    if (CCSPlayerController.contains("fields")) {
+                        const auto& fields = CCSPlayerController["fields"];
+                        Offsets::m_hPlayerPawn = fields["m_hPlayerPawn"];
+                        Offsets::m_sSanitizedPlayerName = fields["m_sSanitizedPlayerName"];
+                        Offsets::m_iPing = fields["m_iPing"];
+                    }
+                }
 
-            // CGlowProperty
-            if (Data.contains("CGlowProperty"))
-            {               
-                Offsets::m_glowColorOverride = CGlowProperty["m_glowColorOverride"];
-                Offsets::m_bGlowing = CGlowProperty["m_bGlowing"];
-            }
+                // C_CSPlayerPawnBase
+                if (Data.contains("C_CSPlayerPawnBase"))
+                {
+                    if (C_CSPlayerPawnBase.contains("fields")) {
+                        const auto& fields = C_CSPlayerPawnBase["fields"];
+                        Offsets::m_flFlashBangTime = fields["m_flFlashBangTime"];
+                        Offsets::m_iIDEntIndex = fields["m_iIDEntIndex"];
+                    }
+                }
 
-            // C_CSGameRules
-            if (Data.contains("C_CSGameRules"))
-            {
-                Offsets::m_bBombPlanted = C_CSGameRules["m_bBombPlanted"];
-                Offsets::m_bBombDropped = C_CSGameRules["m_bBombDropped"];
-                Offsets::m_bWarmupPeriod = C_CSGameRules["m_bWarmupPeriod"];
-                Offsets::m_totalRoundsPlayed = C_CSGameRules["m_totalRoundsPlayed"];
-            }
+                // C_BasePlayerPawn
+                if (Data.contains("C_BasePlayerPawn"))
+                {
+                    if (C_BasePlayerPawn.contains("fields")) {
+                        const auto& fields = C_BasePlayerPawn["fields"];
+                        Offsets::m_vOldOrigin = fields["m_vOldOrigin"];
+                    }
+                }
 
-            // C_PlantedC4
-            if (Data.contains("C_PlantedC4"))
-            {
-                Offsets::m_nBombSite = C_PlantedC4["m_nBombSite"];
-                Offsets::m_bHasExploded = C_PlantedC4["m_bHasExploded"];
-                Offsets::m_bBeingDefused = C_PlantedC4["m_bBeingDefused"];
-                Offsets::m_flDefuseLength = C_PlantedC4["m_flDefuseLength"];
-            }
+                // C_BaseModelEntity
+                if (Data.contains("C_BaseModelEntity"))
+                {
+                    if (C_BaseModelEntity.contains("fields")) {
+                        const auto& fields = C_BaseModelEntity["fields"];
+                        Offsets::m_vecViewOffset = fields["m_vecViewOffset"];
+                        Offsets::m_Glow = fields["m_Glow"];
+                    }
+                }
 
-            // CGameSceneNode
-            if (Data.contains("CGameSceneNode"))
-            {
-                Offsets::m_vecAbsOrigin = CGameSceneNode["m_vecAbsOrigin"];
-            }
+                // CGlowProperty
+                if (Data.contains("CGlowProperty"))
+                {
+                    if (CGlowProperty.contains("fields")) {
+                        const auto& fields = CGlowProperty["fields"];
+                        Offsets::m_glowColorOverride = fields["m_glowColorOverride"];
+                        Offsets::m_bGlowing = fields["m_bGlowing"];
+                    }
+                }
 
-            // EntitySpottedState_t
-            if (Data.contains("EntitySpottedState_t "))
-            {
-                Offsets::m_bSpotted = EntitySpottedState_t["m_bSpotted"];
-            }
+                // C_CSGameRules
+                if (Data.contains("C_CSGameRules"))
+                {
+                    if (C_CSGameRules.contains("fields")) {
+                        const auto& fields = C_CSGameRules["fields"];
+                        Offsets::m_bBombPlanted = fields["m_bBombPlanted"];
+                        Offsets::m_bBombDropped = fields["m_bBombDropped"];
+                        Offsets::m_bWarmupPeriod = fields["m_bWarmupPeriod"];
+                        Offsets::m_totalRoundsPlayed = fields["m_totalRoundsPlayed"];
+                    }
+                }
 
-            return true;
+                // C_PlantedC4
+                if (Data.contains("C_PlantedC4"))
+                {
+                    if (C_PlantedC4.contains("fields")) {
+                        const auto& fields = C_PlantedC4["fields"];
+                        Offsets::m_nBombSite = fields["m_nBombSite"];
+                        Offsets::m_bHasExploded = fields["m_bHasExploded"];
+                        Offsets::m_bBeingDefused = fields["m_bBeingDefused"];
+                        Offsets::m_flDefuseLength = fields["m_flDefuseLength"];
+                    }
+                }
+
+                // CGameSceneNode
+                if (Data.contains("CGameSceneNode"))
+                {
+                    if (CGameSceneNode.contains("fields")) {
+                        const auto& fields = CGameSceneNode["fields"];
+                        Offsets::m_vecAbsOrigin = fields["m_vecAbsOrigin"];
+                    }
+                }
+
+                // EntitySpottedState_t
+                if (Data.contains("EntitySpottedState_t "))
+                {
+                    if (EntitySpottedState_t.contains("fields")) {
+                        const auto& fields = EntitySpottedState_t["fields"];
+                        Offsets::m_bSpotted = fields["m_bSpotted"];
+                    }
+                }
+
+            }
+            
         }
+        return true;
     }
 };
 
