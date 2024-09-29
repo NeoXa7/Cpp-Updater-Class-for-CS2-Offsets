@@ -1,16 +1,16 @@
 {
     "C_CSPlayerPawn": {
         "fields": {
-            "m_ArmorValue": 8972,
-            "m_iShotsFired": 8916,
+            "m_ArmorValue": 8916,
+            "m_iShotsFired": 8884,
             "m_aimPunchAngle": 5324,
-            "m_bIsScoped": 85,
+            "m_bIsScoped": 8864,
             "m_entitySpottedState": 8840
         }
     },
     "C_BaseEntity": {
         "fields": {
-            "m_iTeamNum": 0,
+            "m_iTeamNum": 963,
             "m_iHealth": 804,
             "m_pGameSceneNode": 776,
             "m_fFlags": 972,
@@ -22,13 +22,13 @@
         "fields": {
             "m_hPlayerPawn": 2028,
             "m_sSanitizedPlayerName": 1872,
-            "m_iPing": 1816
+            "m_iPing": 1824
         }
     },
     "C_CSPlayerPawnBase": {
         "fields": {
-            "m_flFlashBangTime": 498,
-            "m_iIDEntIndex": 5048
+            "m_flFlashBangTime": 4936,
+            "m_iIDEntIndex": 5032
         }
     },
     "C_BasePlayerPawn": {
@@ -39,7 +39,7 @@
     "C_BaseModelEntity": {
         "fields": {
             "m_vecViewOffset": 3152,
-            "m_Glow": 2984
+            "m_Glow": 2976
         }
     },
     "CGlowProperty": {
@@ -50,18 +50,18 @@
     },
     "C_CSGameRules": {
         "fields": {
-            "m_bBombPlanted": 245,
-            "m_bBombDropped": 244,
+            "m_bBombPlanted": 2469,
+            "m_bBombDropped": 2468,
             "m_bWarmupPeriod": 65,
             "m_totalRoundsPlayed": 132
         }
     },
     "C_PlantedC4": {
         "fields": {
-            "m_nBombSite": 2372,
+            "m_nBombSite": 3796,
             "m_bHasExploded": 3845,
-            "m_bBeingDefused": 3848,
-            "m_flDefuseLength": 3876
+            "m_bBeingDefused": 3852,
+            "m_flDefuseLength": 3868
         }
     },
     "CGameSceneNode": {
