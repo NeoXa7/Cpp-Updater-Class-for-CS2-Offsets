@@ -31,7 +31,7 @@
     "m_nBombSite": 1013,
     "m_bIsScoped": 1014,
     "m_sSanitizedPlayerName": 1015,
-    "m_fFlags": 1016,
+    "m_fFlags": 1015,
     "m_vecAbsVelocity": 1017,
     "m_vecAbsOrigin": 1018,
     "m_hOwnerEntity": 1019,
