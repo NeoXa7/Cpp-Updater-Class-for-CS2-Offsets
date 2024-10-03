@@ -1,45 +1,45 @@
 {
     "C_CSPlayerPawn": {
         "fields": {
-            "m_ArmorValue": 8918,
-            "m_iShotsFired": 8884,
-            "m_aimPunchAngle": 5324,
-            "m_bIsScoped": 8864,
-            "m_entitySpottedState": 8840
+            "m_ArmorValue": 9204,
+            "m_iShotsFired": 9172,
+            "m_aimPunchAngle": 5492,
+            "m_bIsScoped": 9152,
+            "m_entitySpottedState": 9128
         }
     },
     "C_BaseEntity": {
         "fields": {
-            "m_iTeamNum": 963,
-            "m_iHealth": 804,
-            "m_pGameSceneNode": 776,
-            "m_fFlags": 972,
-            "m_vecAbsVelocity": 976,
-            "m_hOwnerEntity": 1056
+            "m_iTeamNum": 995,
+            "m_iHealth": 836,
+            "m_pGameSceneNode": 808,
+            "m_fFlags": 1004,
+            "m_vecAbsVelocity": 1008,
+            "m_hOwnerEntity": 1088
         }
     },
     "CCSPlayerController": {
         "fields": {
-            "m_hPlayerPawn": 2028,
-            "m_sSanitizedPlayerName": 1872,
-            "m_iPing": 1824
+            "m_hPlayerPawn": 2060,
+            "m_sSanitizedPlayerName": 1904,
+            "m_iPing": 1856
         }
     },
     "C_CSPlayerPawnBase": {
         "fields": {
-            "m_flFlashBangTime": 4936,
-            "m_iIDEntIndex": 5032
+            "m_flFlashBangTime": 5104,
+            "m_iIDEntIndex": 5200
         }
     },
     "C_BasePlayerPawn": {
         "fields": {
-            "m_vOldOrigin": 4724
+            "m_vOldOrigin": 4892
         }
     },
     "C_BaseModelEntity": {
         "fields": {
-            "m_vecViewOffset": 3152,
-            "m_Glow": 2976
+            "m_vecViewOffset": 3240,
+            "m_Glow": 3064
         }
     },
     "CGlowProperty": {
@@ -58,10 +58,10 @@
     },
     "C_PlantedC4": {
         "fields": {
-            "m_nBombSite": 3796,
-            "m_bHasExploded": 3845,
-            "m_bBeingDefused": 3852,
-            "m_flDefuseLength": 3868
+            "m_nBombSite": 3980,
+            "m_bHasExploded": 4029,
+            "m_bBeingDefused": 4036,
+            "m_flDefuseLength": 4052
         }
     },
     "CGameSceneNode": {
