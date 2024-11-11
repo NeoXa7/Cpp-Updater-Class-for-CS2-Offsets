@@ -10,6 +10,7 @@
 #include <sstream>
 #include <filesystem>
 #include <Json/Json.hpp>
+#include <Globals.hpp>
 
 using json = nlohmann::json;
 namespace fileSys = std::filesystem;
