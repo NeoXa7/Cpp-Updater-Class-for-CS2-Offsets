@@ -42,7 +42,7 @@
     },
     "C_CSGameRules": {
         "fields": {
-            "m_bBombPlanted": 2469,
+            "m_bBombPlanted": 7035,
             "m_bBombDropped": 2468,
             "m_bWarmupPeriod": 65
         }
