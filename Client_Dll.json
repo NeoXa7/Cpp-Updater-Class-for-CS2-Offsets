@@ -1,10 +1,10 @@
 {
     "C_CSPlayerPawn": {
         "fields": {
-            "m_ArmorValue": 9220,
-            "m_iShotsFired": 9188,
+            "m_ArmorValue": 9244,
+            "m_iShotsFired": 9212,
             "m_aimPunchAngle": 5508,
-            "m_bIsScoped": 9168
+            "m_bIsScoped": 9192
         }
     },
     "C_BaseEntity": {
