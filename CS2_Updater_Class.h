@@ -9,8 +9,8 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
-#include <Json/Json.hpp>
-#include <Globals.hpp>
+#include <Json.hpp>
+#include <Globals/Globals.hpp>
 
 using json = nlohmann::json;
 namespace fileSys = std::filesystem;
@@ -25,15 +25,13 @@ std::time_t timegm(std::tm* tm) {
 
 class Updater {
 private:
-    std::vector<std::string> FileName = { "offsets.json", "Client_Dll.json", "buttons.json" };
-    string Github_Repo_Api_A2X = "https://api.github.com/repos/a2x/cs2-dumper/commits";
-    string Github_Repo_Api_NeoXa7 = "https://api.github.com/repos/NeoXa7/Cpp-Updater-Class-for-CS2-Offsets/commits";
+    std::vector<std::string> Files = { "offsets.json", "client_dll.json", "buttons.json" };
+    string a2x_dumper_api = "https://api.github.com/repos/a2x/cs2-dumper/commits";
 
-    const std::vector<std::pair<std::string, std::string>> Github_File_Path = {
+    const std::vector<std::pair<std::string, std::string>> file_paths_github = {
         {"https://github.com/a2x/cs2-dumper/raw/main/output/offsets.json", "offsets.json"},
-        {"https://github.com/NeoXa7/Cpp-Updater-Class-for-CS2-Offsets/raw/main/Client_Dll.json", "Client_Dll.json"},
+        {"https://github.com/a2x/cs2-dumper/raw/main/output/client_dll.json", "client_dll.json"},
         {"https://github.com/a2x/cs2-dumper/raw/main/output/buttons.json", "buttons.json"},
-        // Add more files here as needed
     };
 
     inline bool FileExists(const std::string& name) {
@@ -125,24 +123,42 @@ private:
         return true;
     }
 
-public:
-    inline bool CheckAndDownload() {
-        json A2x_Commit, NeoXa7_Commit;
-
-        // Get the last commit information from GitHub
-        if (!GetLastCommitInfo(Github_Repo_Api_A2X, A2x_Commit)) {
-            std::cout << " [Updater] Error getting last commit information from GitHub" << std::endl;
+    inline bool ParseJsonFromFile(const std::string& fileName, json& outJson) {
+        std::ifstream inFile(fileName, std::ios::binary);
+        if (!inFile) {
+            std::cerr << " [Updater] Failed to open " << fileName << "." << std::endl;
             return false;
         }
 
-        if (!GetLastCommitInfo(Github_Repo_Api_NeoXa7, NeoXa7_Commit)) {
+        std::string fileContent((std::istreambuf_iterator<char>(inFile)),
+            std::istreambuf_iterator<char>());
+        inFile.close();
+
+        try {
+            outJson = json::parse(fileContent);
+        }
+        catch (const json::parse_error& e) {
+            std::cerr << " [Updater] JSON parse error in " << fileName
+                << " at byte " << e.byte << ": " << e.what() << std::endl;
+            return false;
+        }
+
+        return true;
+    }
+
+public:
+    inline bool CheckAndDownload() {
+        json a2x_dumper_commit;
+
+        // Get the last commit information from GitHub
+        if (!GetLastCommitInfo(a2x_dumper_api, a2x_dumper_commit)) {
             std::cout << " [Updater] Error getting last commit information from GitHub" << std::endl;
             return false;
         }
 
         // a2x dumper;
-        string A2X_Last_Commit_Date = A2x_Commit["date"];
-        string A2X_Last_Commit_Author_Name = A2x_Commit["name"];
+        string A2X_Last_Commit_Date = a2x_dumper_commit["date"];
+        string A2X_Last_Commit_Author_Name = a2x_dumper_commit["name"];
 
         std::tm Commit_Date_Buffer_A2X = {};
         std::istringstream ssA2X(A2X_Last_Commit_Date);
@@ -154,22 +170,7 @@ public:
         std::tm commit_time_tm_A2X;
         gmtime_s(&commit_time_tm_A2X, &commit_time_t_A2X);
 
-        // neo7 
-        string NeoXa7_Last_Commit_Date = NeoXa7_Commit["date"];
-        string NeoXa7_Last_Commit_Author_Name = NeoXa7_Commit["name"];
-
-        std::tm Commit_Date_Buffer_NeoXa7 = {};
-        std::istringstream ssNeo7(NeoXa7_Last_Commit_Date);
-        ssNeo7 >> std::get_time(&Commit_Date_Buffer_NeoXa7, "%Y-%m-%dT%H:%M:%SZ");
-
-        std::time_t commit_time_t_NeoXa7 = timegm(&Commit_Date_Buffer_NeoXa7);
-        auto CommitTimePoint_NeoXa7 = std::chrono::system_clock::from_time_t(commit_time_t_NeoXa7);
-
-        std::tm commit_time_tm_NeoXa7;
-        gmtime_s(&commit_time_tm_NeoXa7, &commit_time_t_NeoXa7);
-
-
-        for (const auto& file : Github_File_Path) {
+        for (const auto& file : file_paths_github) {
             const auto& url = file.first;
             const auto& localPath = file.second;
 
@@ -182,7 +183,7 @@ public:
                 : std::chrono::system_clock::time_point{};
 
             if (fileExists) {
-                if (lastModifiedClockTime < CommitTimePoint_A2X || lastModifiedClockTime < CommitTimePoint_NeoXa7) {
+                if (lastModifiedClockTime < CommitTimePoint_A2X) {
                     if (localPath == "buttons.json")
                     {
                         if (DownloadFile(url, localPath)) {
@@ -203,11 +204,11 @@ public:
                         }
                     }
 
-                    if (localPath == "Client_Dll.json")
+                    if (localPath == "client_dll.json")
                     {
 
                         if (DownloadFile(url, localPath)) {
-                            std::cout << " [Updater] Client_Dll.json : Successfully Updated to latest Offsets\n";
+                            std::cout << " [Updater] client_dll.json : Successfully Updated to latest Offsets\n";
                         }
                         else {
                             std::cout << " [Updater] Failed to Update to the latest Offsets. File Name : " << localPath << " Try downloading manually from " << url << '\n';
@@ -231,43 +232,22 @@ public:
         return true;
     }
 
-    inline bool UpdateOffsets() {
-
-        json Data;
-
-        for (const auto& FileNames : FileName) {
-            if (!FileExists(FileNames)) {
-                std::cout << " [Updater] " << FileNames << " not found." << std::endl;
+    inline bool UpdateOffsets() {       
+        for (const auto& file : Files) {
+            json Data;
+            if (!FileExists(file)) {
+                std::cerr << " [Updater] " << file << " not found." << std::endl;
                 continue;
             }
 
-            std::ifstream inFile(FileNames);
-            if (!inFile) {
-                std::cout << " [Updater] Failed to open " << FileNames << "." << std::endl;
-                return false;
-            }
-
-            try {
-                inFile >> Data;
-            }
-            catch (const std::exception& e) {
-                std::cout << " [Updater] Failed to parse JSON from " << FileNames << ": " << e.what() << std::endl;
+            if (!ParseJsonFromFile(file, Data)) {
                 return false;
             }
 
             const auto& Client = Data["client.dll"];
             const auto& Matchmaking = Data["matchmaking.dll"];
-            const auto& C_BaseEntity = Data["C_BaseEntity"]["fields"];
-            const auto& C_CSPlayerPawn = Data["C_CSPlayerPawn"]["fields"];
-            const auto& CCSPlayerController = Data["CCSPlayerController"]["fields"];
-            const auto& C_CSPlayerPawnBase = Data["C_CSPlayerPawnBase"]["fields"];
-            const auto& C_BasePlayerPawn = Data["C_BasePlayerPawn"]["fields"];
-            const auto& C_BaseModelEntity = Data["C_BaseModelEntity"]["fields"];
-            const auto& C_CSGameRules = Data["C_CSGameRules"]["fields"];
-            const auto& C_PlantedC4 = Data["C_PlantedC4"]["fields"];
-            const auto& CGameSceneNode = Data["CGameSceneNode"]["fields"];
 
-            if (FileNames == "offsets.json")
+            if (file == "offsets.json")
             {
                 Offsets::dwEntityList = Client["dwEntityList"];
                 Offsets::dwLocalPlayerPawn = Client["dwLocalPlayerPawn"];
@@ -283,53 +263,77 @@ public:
                 Offsets::dwGameTypes = Matchmaking["dwGameTypes"];
                 Offsets::dwGameTypes_mapName = Matchmaking["dwGameTypes_mapName"];
             }
-            else if (FileNames == "Client_Dll.json")
+            else if (file == "client_dll.json") 
             {
-                // C_CSPlayerPawn
-                Offsets::m_ArmorValue = C_CSPlayerPawn["m_ArmorValue"];
-                Offsets::m_iShotsFired = C_CSPlayerPawn["m_iShotsFired"];
-                Offsets::m_aimPunchAngle = C_CSPlayerPawn["m_aimPunchAngle"];
-                Offsets::m_bIsScoped = C_CSPlayerPawn["m_bIsScoped"];
+                json client = Data.contains("client.dll");
 
-                // C_BaseEntity
-                Offsets::m_iTeamNum = C_BaseEntity["m_iTeamNum"];
-                Offsets::m_iHealth = C_BaseEntity["m_iHealth"];
-                Offsets::m_pGameSceneNode = C_BaseEntity["m_pGameSceneNode"];
-                Offsets::m_fFlags = C_BaseEntity["m_fFlags"];
-                Offsets::m_vecAbsVelocity = C_BaseEntity["m_vecAbsVelocity"];
-                Offsets::m_fFlags = C_BaseEntity["m_fFlags"];
-                Offsets::m_hOwnerEntity = C_BaseEntity["m_hOwnerEntity"];
+                if (Data.contains("client.dll") && Data["client.dll"].contains("classes")) {
+                    auto& classes = Data["client.dll"]["classes"];
 
-                // CCSPlayerController
-                Offsets::m_hPlayerPawn = CCSPlayerController["m_hPlayerPawn"];
-                Offsets::m_sSanitizedPlayerName = CCSPlayerController["m_sSanitizedPlayerName"];
-                Offsets::m_iPing = CCSPlayerController["m_iPing"];
+                    if (classes.contains("C_CSPlayerPawn")) {
+                        auto& C_CSPlayerPawn = classes["C_CSPlayerPawn"]["fields"];
+                        Offsets::m_ArmorValue = C_CSPlayerPawn["m_ArmorValue"];
+                        Offsets::m_iShotsFired = C_CSPlayerPawn["m_iShotsFired"];
+                        Offsets::m_aimPunchAngle = C_CSPlayerPawn["m_aimPunchAngle"];
+                        Offsets::m_bIsScoped = C_CSPlayerPawn["m_bIsScoped"];
+                    }
 
-                // C_CSPlayerPawnBase
-                Offsets::m_flFlashBangTime = C_CSPlayerPawnBase["m_flFlashBangTime"];
-                Offsets::m_iIDEntIndex = C_CSPlayerPawnBase["m_iIDEntIndex"];
+                    if (classes.contains("C_BaseEntity")) {
+                        auto& C_BaseEntity = classes["C_BaseEntity"]["fields"];
+                        Offsets::m_iTeamNum = C_BaseEntity["m_iTeamNum"];
+                        Offsets::m_iHealth = C_BaseEntity["m_iHealth"];
+                        Offsets::m_pGameSceneNode = C_BaseEntity["m_pGameSceneNode"];
+                        Offsets::m_fFlags = C_BaseEntity["m_fFlags"];
+                        Offsets::m_vecAbsVelocity = C_BaseEntity["m_vecAbsVelocity"];
+                        Offsets::m_hOwnerEntity = C_BaseEntity["m_hOwnerEntity"];
+                    }
 
-                // C_BasePlayerPawn
-                Offsets::m_vOldOrigin = C_BasePlayerPawn["m_vOldOrigin"];
+                    if (classes.contains("CCSPlayerController")) {
+                        auto& CCSPlayerController = classes["CCSPlayerController"]["fields"];
+                        Offsets::m_hPlayerPawn = CCSPlayerController["m_hPlayerPawn"];
+                        Offsets::m_sSanitizedPlayerName = CCSPlayerController["m_sSanitizedPlayerName"];
+                        Offsets::m_iPing = CCSPlayerController["m_iPing"];
+                    }
 
-                // C_BaseModelEntity
-                Offsets::m_vecViewOffset = C_BaseModelEntity["m_vecViewOffset"];
+                    if (classes.contains("C_CSPlayerPawnBase")) {
+                        auto& C_CSPlayerPawnBase = classes["C_CSPlayerPawnBase"]["fields"];
+                        Offsets::m_flFlashBangTime = C_CSPlayerPawnBase["m_flFlashBangTime"];
+                        Offsets::m_iIDEntIndex = C_CSPlayerPawnBase["m_iIDEntIndex"];
+                    }
 
-                // C_CSGameRules
-                Offsets::m_bBombPlanted = C_CSGameRules["m_bBombPlanted"];
-                Offsets::m_bBombDropped = C_CSGameRules["m_bBombDropped"];
-                Offsets::m_bWarmupPeriod = C_CSGameRules["m_bWarmupPeriod"];
+                    if (classes.contains("C_BasePlayerPawn")) {
+                        auto& C_BasePlayerPawn = classes["C_BasePlayerPawn"]["fields"];
+                        Offsets::m_vOldOrigin = C_BasePlayerPawn["m_vOldOrigin"];
+                    }
 
-                // C_PlantedC4
-                Offsets::m_nBombSite = C_PlantedC4["m_nBombSite"];
-                Offsets::m_bHasExploded = C_PlantedC4["m_bHasExploded"];
-                Offsets::m_bBeingDefused = C_PlantedC4["m_bBeingDefused"];
-                Offsets::m_flDefuseLength = C_PlantedC4["m_flDefuseLength"];
+                    if (classes.contains("C_BaseModelEntity")) {
+                        auto& C_BaseModelEntity = classes["C_BaseModelEntity"]["fields"];
+                        Offsets::m_vecViewOffset = C_BaseModelEntity["m_vecViewOffset"];
+                    }
 
-                // CGameSceneNode
-                Offsets::m_vecAbsOrigin = CGameSceneNode["m_vecAbsOrigin"];
+                    if (classes.contains("C_CSGameRules")) {
+                        auto& C_CSGameRules = classes["C_CSGameRules"]["fields"];
+                        Offsets::m_bBombPlanted = C_CSGameRules["m_bBombPlanted"];
+                        Offsets::m_bBombDropped = C_CSGameRules["m_bBombDropped"];
+                        Offsets::m_bWarmupPeriod = C_CSGameRules["m_bWarmupPeriod"];
+                    }
+
+
+                    if (classes.contains("C_PlantedC4")) {
+                        auto& C_PlantedC4 = classes["C_PlantedC4"]["fields"];
+                        Offsets::m_nBombSite = C_PlantedC4["m_nBombSite"];
+                        Offsets::m_bHasExploded = C_PlantedC4["m_bHasExploded"];
+                        Offsets::m_bBeingDefused = C_PlantedC4["m_bBeingDefused"];
+                        Offsets::m_flDefuseLength = C_PlantedC4["m_flDefuseLength"];
+                    }
+
+                    if (classes.contains("CGameSceneNode")) {
+                        auto& CGameSceneNode = classes["CGameSceneNode"]["fields"];
+                        Offsets::m_vecAbsOrigin = CGameSceneNode["m_vecAbsOrigin"];
+                    }
+                }
             }
-            else if (FileNames == "buttons.json")
+            else if (file == "buttons.json")
             {
                 Offsets::dwForceAttack = Client["attack"];
                 Offsets::dwForceAttack2 = Client["attack2"];
