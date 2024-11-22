@@ -9,7 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
-#include <Json.hpp>
+#include <Json/Json.hpp>
 #include <Globals/Globals.hpp>
 
 using json = nlohmann::json;
@@ -57,7 +57,7 @@ private:
 
         std::ofstream outFile(fileName, std::ios::binary);
         if (!outFile) {
-            std::cout << " [Updater] Failed to create local file." << std::endl;
+            std::cout << " [Updater] Failed to create local file: " << fileName << std::endl;
             InternetCloseHandle(hConnect);
             InternetCloseHandle(hInternet);
             return false;
@@ -76,6 +76,7 @@ private:
 
         return true;
     }
+
 
     inline bool GetLastCommitInfo(string api, json& commit) {
         HINTERNET hInternet, hConnect;
@@ -148,6 +149,12 @@ private:
 
 public:
     inline bool CheckAndDownload() {
+        // Ensure the directory exists
+        std::string directory = "offsets";
+        if (!std::filesystem::exists(directory)) {
+            std::filesystem::create_directory(directory);
+        }
+
         json a2x_dumper_commit;
 
         // Get the last commit information from GitHub
@@ -156,23 +163,16 @@ public:
             return false;
         }
 
-        // a2x dumper;
         string A2X_Last_Commit_Date = a2x_dumper_commit["date"];
-        string A2X_Last_Commit_Author_Name = a2x_dumper_commit["name"];
-
         std::tm Commit_Date_Buffer_A2X = {};
         std::istringstream ssA2X(A2X_Last_Commit_Date);
         ssA2X >> std::get_time(&Commit_Date_Buffer_A2X, "%Y-%m-%dT%H:%M:%SZ");
-
         std::time_t commit_time_t_A2X = timegm(&Commit_Date_Buffer_A2X);
         auto CommitTimePoint_A2X = std::chrono::system_clock::from_time_t(commit_time_t_A2X);
 
-        std::tm commit_time_tm_A2X;
-        gmtime_s(&commit_time_tm_A2X, &commit_time_t_A2X);
-
         for (const auto& file : file_paths_github) {
             const auto& url = file.first;
-            const auto& localPath = file.second;
+            std::string localPath = directory + "/" + file.second; // Store files in the offsets directory
 
             bool fileExists = FileExists(localPath);
             auto lastModifiedTime = fileExists ? fileSys::last_write_time(localPath) : fileSys::file_time_type{};
@@ -182,65 +182,32 @@ public:
                     lastModifiedTime - fileSys::file_time_type::clock::now() + std::chrono::system_clock::now())
                 : std::chrono::system_clock::time_point{};
 
-            if (fileExists) {
-                if (lastModifiedClockTime < CommitTimePoint_A2X) {
-                    if (localPath == "buttons.json")
-                    {
-                        if (DownloadFile(url, localPath)) {
-                            std::cout << " [Updater] buttons.json : Successfully Updated to latest Offsets\n";
-                        }
-                        else {
-                            std::cout << " [Updater] Failed to Update to the latest Offsets. File Name : " << localPath << " Try downloading manually from " << url << '\n';
-                        }
-                    }
-
-                    if (localPath == "offsets.json")
-                    {
-                        if (DownloadFile(url, localPath)) {
-                            std::cout << " [Updater] offsets.json : Successfully Updated to latest Offsets\n";
-                        }
-                        else {
-                            std::cout << " [Updater] Failed to Update to the latest Offsets. File Name : " << localPath << " Try downloading manually from " << url << '\n';
-                        }
-                    }
-
-                    if (localPath == "client_dll.json")
-                    {
-
-                        if (DownloadFile(url, localPath)) {
-                            std::cout << " [Updater] client_dll.json : Successfully Updated to latest Offsets\n";
-                        }
-                        else {
-                            std::cout << " [Updater] Failed to Update to the latest Offsets. File Name : " << localPath << " Try downloading manually from " << url << '\n';
-                        }
-                    }
-                }
+            if (fileExists && lastModifiedClockTime >= CommitTimePoint_A2X) {
+                std::cout << " [Updater] " << localPath << " is Up-to-Date." << std::endl;
             }
-            else if (!fileExists) {
-                if (DownloadFile(url, localPath)) {
-                    std::cout << " [Updater] Successfully downloaded the latest " << localPath << "." << std::endl;
+            else {
+                if (Updater::DownloadFile(url, localPath)) {
+                    std::cout << " [Updater] Successfully downloaded or updated " << localPath << "." << std::endl;
                 }
                 else {
                     std::cout << " [Updater] Error: Failed to download " << localPath << ". Try downloading manually from " << url << std::endl;
                 }
             }
-            else {
-                std::cout << " [Updater] " << localPath << " is Up-to-Date." << std::endl;
-            }
-
         }
         return true;
     }
 
-    inline bool UpdateOffsets() {       
+    inline bool UpdateOffsets() {
+        std::string directory = "offsets";
         for (const auto& file : Files) {
+            std::string filePath = directory + "/" + file;
             json Data;
-            if (!FileExists(file)) {
-                std::cerr << " [Updater] " << file << " not found." << std::endl;
+            if (!FileExists(filePath)) {
+                std::cerr << " [Updater] " << filePath << " not found." << std::endl;
                 continue;
             }
 
-            if (!ParseJsonFromFile(file, Data)) {
+            if (!ParseJsonFromFile(filePath, Data)) {
                 return false;
             }
 
@@ -263,7 +230,7 @@ public:
                 Offsets::dwGameTypes = Matchmaking["dwGameTypes"];
                 Offsets::dwGameTypes_mapName = Matchmaking["dwGameTypes_mapName"];
             }
-            else if (file == "client_dll.json") 
+            else if (file == "client_dll.json")
             {
                 json client = Data.contains("client.dll");
 
