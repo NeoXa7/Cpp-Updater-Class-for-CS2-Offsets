@@ -9,8 +9,8 @@
 #include <iomanip>
 #include <sstream>
 #include <filesystem>
-#include <Json/Json.hpp>
-#include <Globals/Globals.hpp>
+#include <Libs/Json.hpp>
+#include "Offsets.h"
 
 using json = nlohmann::json;
 namespace fileSys = std::filesystem;
@@ -302,9 +302,9 @@ public:
             }
             else if (file == "buttons.json")
             {
-                Offsets::dwForceAttack = Client["attack"];
-                Offsets::dwForceAttack2 = Client["attack2"];
-                Offsets::dwForceJump = Client["jump"];
+                Offsets::attack = Client["attack"];
+                Offsets::attack2 = Client["attack2"];
+                Offsets::jump = Client["jump"];
             }
         }
         return true;
